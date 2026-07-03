@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iris AI Analytics & Predictor Dashboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN for beautiful interactive scatter plots -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts (Pretendard-like Inter and Gothic) -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+    }
+    /* Custom Scrollbar for premium feel */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-emerald-500 rounded-xl text-white shadow-md shadow-emerald-200 animate-pulse">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            붓꽃(Iris) AI 분석 및 의사결정나무 예측기
+          </h1>
+          <p class="text-xs text-slate-500 font-medium">Iris Flower Machine Learning Dashboard & Explorer</p>
+        </div>
+      </div>
+      <!-- Tab Navigation -->
+      <nav class="flex space-x-1 bg-slate-100 p-1 rounded-xl">
+        <button onclick="switchTab('predict')" id="tab-predict" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-white text-emerald-700 shadow-sm">
+          🔮 실시간 AI 예측
+        </button>
+        <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-200">
+          📊 데이터 분석 & 히트맵
+        </button>
+        <button onclick="switchTab('explorer')" id="tab-explorer" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-200">
+          🔍 데이터 세트 테이블
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- TAB 1: Real-time AI Predictor -->
+    <div id="content-predict" class="tab-content block space-y-8">
+      
+      <!-- Intro Card -->
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-emerald-900/10 relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+          <svg class="w-80 h-80" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-1.05 10.355l-1.25 2.5a.75.75 0 101.35.65l1.25-2.5a5.25 5.25 0 00-.3-11.005zm-4 1a4.25 4.25 0 00-1.05 8.355l-1.25 2.5a.75.75 0 101.35.65l1.25-2.5a4.25 4.25 0 00-.3-9.005z" clip-rule="evenodd"></path></svg>
+        </div>
+        <div class="max-w-2xl">
+          <span class="bg-emerald-500/30 text-emerald-100 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Interactive ML Mode</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold mt-3 tracking-tight">수치를 입력하면 AI가 붓꽃 품종을 실시간 예측합니다!</h2>
+          <p class="text-emerald-100/90 text-sm sm:text-base mt-2 font-light leading-relaxed">
+            아래 슬라이더를 조작해 보세요. 머신러닝 의사결정나무 모델이 사용자가 입력한 꽃받침과 꽃잎 크기를 바탕으로 어떤 "스무고개" 질문들을 타고 내려가 품종을 맞히는지 실시간 의사결정 경로가 하이라이트됩니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- Main Layout for Predictor -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Controls Panel (Left) -->
+        <div class="lg:col-span-5 bg-white rounded-3xl p-6 shadow-xs border border-slate-100 flex flex-col justify-between">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 수치 측정 조절기
+            </h3>
+            
+            <!-- Sliders Grid -->
+            <div class="space-y-6">
+              <!-- Sepal Length -->
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-400"></span> 꽃받침 길이 (Sepal Length)
+                  </label>
+                  <span id="val-sepal-len" class="text-base font-bold text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">5.1 cm</span>
+                </div>
+                <input type="range" id="input-sepal-len" min="4.3" max="7.9" step="0.1" value="5.1" 
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 focus:outline-none">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                  <span>최소: 4.3 cm</span>
+                  <span>최대: 7.9 cm</span>
+                </div>
+              </div>
+
+              <!-- Sepal Width -->
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-400"></span> 꽃받침 너비 (Sepal Width)
+                  </label>
+                  <span id="val-sepal-wid" class="text-base font-bold text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">3.5 cm</span>
+                </div>
+                <input type="range" id="input-sepal-wid" min="2.0" max="4.4" step="0.1" value="3.5" 
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 focus:outline-none">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                  <span>최소: 2.0 cm</span>
+                  <span>최대: 4.4 cm</span>
+                </div>
+              </div>
+
+              <!-- Petal Length -->
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> 꽃잎 길이 (Petal Length)
+                  </label>
+                  <span id="val-petal-len" class="text-base font-bold text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">1.4 cm</span>
+                </div>
+                <input type="range" id="input-petal-len" min="1.0" max="6.9" step="0.1" value="1.4" 
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 focus:outline-none">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                  <span>최소: 1.0 cm</span>
+                  <span>최대: 6.9 cm</span>
+                </div>
+              </div>
+
+              <!-- Petal Width -->
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> 꽃잎 너비 (Petal Width)
+                  </label>
+                  <span id="val-petal-wid" class="text-base font-bold text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">0.2 cm</span>
+                </div>
+                <input type="range" id="input-petal-wid" min="0.1" max="2.5" step="0.1" value="0.2" 
+                  class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 focus:outline-none">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                  <span>최소: 0.1 cm</span>
+                  <span>최대: 2.5 cm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Preset Buttons -->
+          <div class="mt-8 pt-6 border-t border-slate-150">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">샘플 데이터 대표수치 입력해보기</h4>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="applyPreset(5.0, 3.4, 1.5, 0.2)" class="py-2 px-1 text-xs font-semibold bg-red-50 text-red-600 border border-red-100 rounded-xl hover:bg-red-100 transition-all duration-150">
+                🌸 세토사 (Setosa)
+              </button>
+              <button onclick="applyPreset(5.9, 2.7, 4.2, 1.3)" class="py-2 px-1 text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl hover:bg-emerald-100 transition-all duration-150">
+                🌿 버시컬러
+              </button>
+              <button onclick="applyPreset(6.6, 3.0, 5.5, 2.0)" class="py-2 px-1 text-xs font-semibold bg-purple-50 text-purple-600 border border-purple-100 rounded-xl hover:bg-purple-100 transition-all duration-150">
+                🍇 버지니카
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Prediction Output & Visual Path Panel (Right) -->
+        <div class="lg:col-span-7 space-y-8">
+          
+          <!-- Prediction Result Banner -->
+          <div id="result-banner" class="rounded-3xl p-6 shadow-sm border flex flex-col sm:flex-row items-center gap-6 transition-all duration-300">
+            <!-- Flower Graphic Emoji -->
+            <div id="species-avatar" class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-md border">
+              🌸
+            </div>
+            <!-- Classification Information -->
+            <div class="flex-grow text-center sm:text-left">
+              <span class="text-xs font-extrabold uppercase tracking-widest text-slate-400">ML Classification Result</span>
+              <h3 id="species-title" class="text-2xl font-extrabold text-slate-900 mt-0.5">세토사 (Setosa)</h3>
+              <p id="species-desc" class="text-sm text-slate-600 mt-1.5 leading-relaxed font-light">꽃잎의 길이와 너비가 현저하게 작아 의사결정나무 스무고개의 첫 단계에서 완벽하게 독자적인 품종으로 고정 분류됩니다.</p>
+            </div>
+          </div>
+
+          <!-- Decision Tree Decision Path Visualization -->
+          <div class="bg-white rounded-3xl p-6 shadow-xs border border-slate-100">
+            <h4 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 의사결정 경로 시각화 (Decision Tree Path)
+            </h4>
+
+            <!-- Tree Structure Map -->
+            <div class="relative flex flex-col items-center space-y-4">
+              
+              <!-- Node 1 (Root) -->
+              <div id="node-root" class="node-box w-72 bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">질문 1 [뿌리 노드]</span>
+                <span class="text-sm font-extrabold text-slate-800">꽃잎 길이 &le; 2.45 cm</span>
+                <div class="text-[10px] text-slate-500 mt-1">현재 입력값: <span id="tree-petal-len-val" class="font-bold">1.4</span> cm</div>
+              </div>
+
+              <!-- Connectors Layer -->
+              <div class="w-full max-w-lg flex justify-between px-16 relative">
+                <!-- SVG Connector lines -->
+                <svg class="absolute top-0 left-0 w-full h-12 pointer-events-none" style="z-index: 1;">
+                  <line id="line-left-1" x1="28%" y1="0" x2="18%" y2="100%" stroke="#e2e8f0" stroke-width="3" />
+                  <line id="line-right-1" x1="72%" y1="0" x2="82%" y2="100%" stroke="#e2e8f0" stroke-width="3" />
+                </svg>
+                <div class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100" style="z-index: 2;">참 (Yes)</div>
+                <div class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200" style="z-index: 2;">거짓 (No)</div>
+              </div>
+
+              <!-- Row 2 -->
+              <div class="w-full flex justify-between gap-4">
+                
+                <!-- Node 2 (Leaf - Setosa) -->
+                <div id="node-setosa" class="node-box w-1/2 bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">결과 노드 [순도 100%]</span>
+                  <span class="text-sm font-extrabold text-red-600 block">🌸 세토사 (Setosa)</span>
+                  <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">다른 품종이 절대 섞이지 않는 고유 영역입니다.</p>
+                </div>
+
+                <!-- Node 3 (Internal Node) -->
+                <div id="node-mid" class="node-box w-1/2 bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300 flex flex-col justify-center">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">질문 2 [내부 분기 노드]</span>
+                  <span class="text-sm font-extrabold text-slate-800">꽃잎 너비 &le; 1.75 cm</span>
+                  <div class="text-[10px] text-slate-500 mt-1">현재 입력값: <span id="tree-petal-wid-val" class="font-bold">0.2</span> cm</div>
+                </div>
+
+              </div>
+
+              <!-- Connectors Layer 2 -->
+              <div class="w-full max-w-lg flex justify-end px-4 relative">
+                <!-- SVG Connector lines -->
+                <svg class="absolute top-0 left-0 w-full h-12 pointer-events-none" style="z-index: 1;">
+                  <line id="line-left-2" x1="68%" y1="0" x2="58%" y2="100%" stroke="#e2e8f0" stroke-width="3" />
+                  <line id="line-right-2" x1="88%" y1="0" x2="93%" y2="100%" stroke="#e2e8f0" stroke-width="3" />
+                </svg>
+                <div class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 mr-28" style="z-index: 2;">참 (Yes)</div>
+                <div class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 mr-6" style="z-index: 2;">거짓 (No)</div>
+              </div>
+
+              <!-- Row 3 -->
+              <div class="w-full flex justify-between gap-4">
+                <div class="w-1/2"></div> <!-- Spacer to match setosa layout alignment -->
+
+                <!-- Node 4 (Leaf - Versicolor) -->
+                <div id="node-versicolor" class="node-box w-[48%] bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">결과 노드 [중간 크기]</span>
+                  <span class="text-sm font-extrabold text-emerald-600 block">🌿 버시컬러 (Versicolor)</span>
+                  <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">꽃잎 너비 1.75cm 이하의 날렵한 품종군입니다.</p>
+                </div>
+
+                <!-- Node 5 (Leaf - Virginica) -->
+                <div id="node-virginica" class="node-box w-[48%] bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">결과 노드 [대형 크기]</span>
+                  <span class="text-sm font-extrabold text-purple-600 block">🍇 버지니카 (Virginica)</span>
+                  <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">꽃잎 너비가 두터워 주로 가장 끝에 위치합니다.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Correlation Analysis & Heatmaps -->
+    <div id="content-analytics" class="tab-content hidden space-y-8 animate-fadeIn">
+      
+      <!-- Option Controls -->
+      <div class="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">🔍 품종별 상관관계 탐색</h3>
+          <p class="text-sm text-slate-500 mt-1">분석 대상을 변경하면, 자바스크립트가 실시간으로 피어슨 상관계수($r$) 행렬을 전산 처리하여 히트맵을 생성합니다.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="calculateAndRenderHeatmap('all')" id="btn-hm-all" class="hm-btn px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-900 text-white shadow-sm transition-all duration-150">전체 통합 데이터</button>
+          <button onclick="calculateAndRenderHeatmap('setosa')" id="btn-hm-setosa" class="hm-btn px-4 py-2.5 text-sm font-semibold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all duration-150">세토사 (Setosa)</button>
+          <button onclick="calculateAndRenderHeatmap('versicolor')" id="btn-hm-versicolor" class="hm-btn px-4 py-2.5 text-sm font-semibold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all duration-150">버시컬러 (Versicolor)</button>
+          <button onclick="calculateAndRenderHeatmap('virginica')" id="btn-hm-virginica" class="hm-btn px-4 py-2.5 text-sm font-semibold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all duration-150">버지니카 (Virginica)</button>
+        </div>
+      </div>
+
+      <!-- Analysis Visualizations Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Heatmap Display Card -->
+        <div class="bg-white rounded-3xl p-6 shadow-xs border border-slate-100">
+          <div class="flex justify-between items-center mb-6">
+            <h4 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 
+              <span id="heatmap-title-text">전체 붓꽃 특성별 피어슨 상관관계</span>
+            </h4>
+            <span class="text-xs bg-slate-100 text-slate-600 font-bold px-2 py-1 rounded-md">Pearson Correlation</span>
+          </div>
+
+          <!-- Heatmap Canvas Container -->
+          <div class="flex flex-col items-center">
+            
+            <!-- Real-time Custom Heatmap Render Grid -->
+            <div class="w-full max-w-md bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <!-- Grid Header Labels -->
+              <div class="grid grid-cols-5 gap-1 mb-2 text-center text-xs font-bold text-slate-500">
+                <div></div>
+                <div class="py-1">꽃받침 길이</div>
+                <div class="py-1">꽃받침 너비</div>
+                <div class="py-1">꽃잎 길이</div>
+                <div class="py-1">꽃잎 너비</div>
+              </div>
+
+              <!-- Heatmap Rows will be rendered here dynamically -->
+              <div id="heatmap-grid" class="space-y-1">
+                <!-- JS generated rows go here -->
+              </div>
+            </div>
+
+            <!-- Color Scale Legend -->
+            <div class="w-full max-w-md mt-6">
+              <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1.5">
+                <span>역상관 (-1.0)</span>
+                <span>무상관 (0.0)</span>
+                <span>정상관 (+1.0)</span>
+              </div>
+              <div class="w-full h-3 rounded-full bg-gradient-to-r from-rose-500 via-slate-100 to-emerald-500 border border-slate-200"></div>
+            </div>
+
+            <!-- Mini Description -->
+            <p class="text-xs text-slate-500 mt-4 leading-relaxed text-center">
+              수치가 <strong>+1.0에 가까울수록</strong> 강한 비례 관계, <strong>-1.0에 가까울수록</strong> 강한 반비례 관계를 갖습니다. <br>
+              품종군별로 특정 관계망이 완전히 뒤바뀌는 경향을 관찰해 보세요.
+            </p>
+          </div>
+        </div>
+
+        <!-- Scatter Plot Display Card -->
+        <div class="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-6">
+              <h4 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 인터랙티브 분포도 (산점도)
+              </h4>
+              <div class="flex gap-2">
+                <select id="axis-x-select" onchange="updateScatterPlot()" class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-1.5 focus:outline-none">
+                  <option value="0">X축: 꽃받침 길이</option>
+                  <option value="1">X축: 꽃받침 너비</option>
+                  <option value="2" selected>X축: 꽃잎 길이</option>
+                  <option value="3">X축: 꽃잎 너비</option>
+                </select>
+                <select id="axis-y-select" onchange="updateScatterPlot()" class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-1.5 focus:outline-none">
+                  <option value="0">Y축: 꽃받침 길이</option>
+                  <option value="1">Y축: 꽃받침 너비</option>
+                  <option value="2">Y축: 꽃잎 길이</option>
+                  <option value="3" selected>Y축: 꽃잎 너비</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Plot Canvas -->
+            <div class="relative h-[280px] w-full flex items-center justify-center">
+              <canvas id="scatterChart"></canvas>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-3">
+            <div class="w-4 h-4 rounded-full bg-emerald-500 animate-ping"></div>
+            <p class="text-xs text-slate-600 leading-relaxed font-medium">
+              💡 <strong>예측 연동:</strong> AI 예측 탭에서 설정해 놓은 실시간 수치가 차트 위에 <span class="text-emerald-700 font-extrabold text-sm font-sans">+ 십자 표시</span>로 실시간 표시됩니다!
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 3: Dataset Explorer -->
+    <div id="content-explorer" class="tab-content hidden space-y-8 animate-fadeIn">
+      <div class="bg-white rounded-3xl p-6 shadow-xs border border-slate-100">
+        <!-- Explorer Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">📋 실제 붓꽃 데이터 탐색기</h3>
+            <p class="text-sm text-slate-500 mt-1">머신러닝 학습 모델의 훈련용으로 사용된 원본 Iris 150행 데이터를 필터링하고 검색해 보세요.</p>
+          </div>
+          <!-- Search & Filter Controls -->
+          <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <input oninput="filterExplorerTable()" id="table-search" type="text" placeholder="품종 검색 (setosa, versicolor, virginica)..." class="text-sm px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 w-full sm:w-64">
+            <select onchange="filterExplorerTable()" id="table-filter" class="text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-white">
+              <option value="all">품종 전체 보기</option>
+              <option value="setosa">setosa</option>
+              <option value="versicolor">versicolor</option>
+              <option value="virginica">virginica</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Table Responsive Container -->
+        <div class="overflow-x-auto rounded-2xl border border-slate-150">
+          <table class="min-w-full divide-y divide-slate-200 text-sm text-left">
+            <thead class="bg-slate-50 text-slate-500 font-bold">
+              <tr>
+                <th class="px-6 py-3">인덱스번호</th>
+                <th class="px-6 py-3">꽃받침 길이 (cm)</th>
+                <th class="px-6 py-3">꽃받침 너비 (cm)</th>
+                <th class="px-6 py-3">꽃잎 길이 (cm)</th>
+                <th class="px-6 py-3">꽃잎 너비 (cm)</th>
+                <th class="px-6 py-3">실제 품종 분류</th>
+              </tr>
+            </thead>
+            <tbody id="table-tbody" class="divide-y divide-slate-100 text-slate-700 font-medium">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table Footer / Pagination stats -->
+        <div class="flex justify-between items-center mt-4 text-xs text-slate-400 font-bold px-1">
+          <span id="table-stats">출력 항목: 150행 중 150행</span>
+          <span class="uppercase tracking-widest text-[9px] bg-slate-150 text-slate-500 py-1 px-2.5 rounded-md">Iris-Dataset-v1</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500 font-medium">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-2">
+      <p>🌿 머신러닝 의사결정나무 예측 알고리즘 분석용 웹 애플리케이션</p>
+      <p class="text-slate-400">&copy; 2026. Iris AI Visual Predictor App. Designed for Data Scientists.</p>
+    </div>
+  </footer>
+
+  <!-- JS Implementation of Iris Analytics Application -->
+  <script>
+    // ----------------- 1. IRIS FULL DATASET (150 Rows) -----------------
+    // Format: [sepal_len, sepal_wid, petal_len, petal_wid, target_id]
+    const irisRawData = [
+      [5.1,3.5,1.4,0.2,0],[4.9,3.0,1.4,0.2,0],[4.7,3.2,1.3,0.2,0],[4.6,3.1,1.5,0.2,0],[5.0,3.6,1.4,0.2,0],
+      [5.4,3.9,1.7,0.4,0],[4.6,3.4,1.4,0.3,0],[5.0,3.4,1.5,0.2,0],[4.4,2.9,1.4,0.2,0],[4.9,3.1,1.5,0.1,0],
+      [5.4,3.7,1.5,0.2,0],[4.8,3.4,1.6,0.2,0],[4.8,3.0,1.4,0.1,0],[4.3,3.0,1.1,0.1,0],[5.8,4.0,1.2,0.2,0],
+      [5.7,4.4,1.5,0.4,0],[5.4,3.9,1.3,0.4,0],[5.1,3.5,1.4,0.3,0],[5.7,3.8,1.7,0.3,0],[5.1,3.8,1.5,0.3,0],
+      [5.4,3.4,1.7,0.2,0],[5.1,3.7,1.5,0.4,0],[4.6,3.6,1.0,0.2,0],[5.1,3.3,1.7,0.5,0],[4.8,3.4,1.9,0.2,0],
+      [5.0,3.0,1.6,0.2,0],[5.0,3.4,1.6,0.4,0],[5.2,3.5,1.5,0.2,0],[5.2,3.4,1.4,0.2,0],[4.7,3.2,1.6,0.2,0],
+      [4.8,3.1,1.6,0.2,0],[5.4,3.4,1.5,0.4,0],[5.2,4.1,1.5,0.1,0],[5.5,4.2,1.4,0.2,0],[4.9,3.1,1.5,0.2,0],
+      [5.0,3.2,1.2,0.2,0],[5.5,3.5,1.3,0.2,0],[4.9,3.6,1.4,0.1,0],[4.4,3.0,1.3,0.2,0],[5.1,3.4,1.5,0.2,0],
+      [5.0,3.5,1.3,0.3,0],[4.5,2.3,1.3,0.3,0],[4.4,3.2,1.3,0.2,0],[5.0,3.5,1.6,0.6,0],[5.1,3.8,1.9,0.4,0],
+      [4.8,3.0,1.4,0.3,0],[5.1,3.8,1.6,0.2,0],[4.6,3.2,1.4,0.2,0],[5.3,3.7,1.5,0.2,0],[5.0,3.3,1.4,0.2,0],
+      [7.0,3.2,4.7,1.4,1],[6.4,3.2,4.5,1.5,1],[6.9,3.1,4.9,1.5,1],[5.5,2.3,4.0,1.3,1],[6.5,2.8,4.6,1.5,1],
+      [5.7,2.8,4.5,1.3,1],[6.3,3.3,4.7,1.6,1],[4.9,2.4,3.3,1.0,1],[6.6,2.9,4.6,1.3,1],[5.2,2.7,3.9,1.4,1],
+      [5.0,2.0,3.5,1.0,1],[5.9,3.0,4.2,1.5,1],[6.0,2.2,4.0,1.0,1],[6.1,2.9,4.7,1.4,1],[5.6,2.9,3.6,1.3,1],
+      [6.7,3.1,4.4,1.4,1],[5.6,3.0,4.5,1.5,1],[5.8,2.7,4.1,1.0,1],[6.2,2.2,4.5,1.5,1],[5.6,2.5,3.9,1.1,1],
+      [5.9,3.2,4.8,1.8,1],[6.1,2.8,4.0,1.3,1],[6.3,2.5,4.9,1.5,1],[6.1,2.8,4.7,1.2,1],[6.4,2.9,4.3,1.3,1],
+      [6.6,3.0,4.4,1.4,1],[6.8,2.8,4.8,1.4,1],[6.7,3.0,5.0,1.7,1],[6.0,2.9,4.5,1.5,1],[5.7,2.6,3.5,1.0,1],
+      [5.5,2.4,3.8,1.1,1],[5.5,2.4,3.7,1.0,1],[5.8,2.7,3.9,1.2,1],[6.0,2.7,5.1,1.6,1],[5.4,3.0,4.5,1.5,1],
+      [6.0,3.4,4.5,1.6,1],[6.7,3.1,4.7,1.5,1],[6.3,2.3,4.4,1.3,1],[5.6,3.0,4.1,1.3,1],[5.5,2.5,4.0,1.3,1],
+      [5.5,2.6,4.4,1.2,1],[6.1,3.0,4.6,1.4,1],[5.8,2.6,4.0,1.2,1],[5.0,2.3,3.3,1.0,1],[5.6,2.7,4.2,1.3,1],
+      [5.7,3.0,4.2,1.2,1],[5.7,2.9,4.2,1.3,1],[6.2,2.9,4.3,1.3,1],[5.1,2.5,3.0,1.1,1],[5.7,2.8,4.1,1.3,1],
+      [6.3,3.3,6.0,2.5,2],[5.8,2.7,5.1,1.9,2],[7.1,3.0,5.9,2.1,2],[6.3,2.9,5.6,1.8,2],[6.5,3.0,5.8,2.2,2],
+      [7.6,3.0,6.6,2.1,2],[4.9,2.5,4.5,1.7,2],[7.3,2.9,6.3,1.8,2],[6.7,2.5,5.8,1.8,2],[7.2,3.6,6.1,2.5,2],
+      [6.5,3.2,5.1,2.0,2],[6.4,2.7,5.3,1.9,2],[6.8,3.0,5.5,2.1,2],[5.7,2.5,5.0,2.0,2],[5.8,2.8,5.1,2.4,2],
+      [6.4,3.2,5.3,2.3,2],[6.5,3.0,5.5,1.8,2],[7.7,3.8,6.7,2.2,2],[7.7,2.6,6.9,2.3,2],[6.0,3.0,4.8,1.8,2],
+      [6.9,3.1,5.4,2.1,2],[5.6,2.8,4.9,2.0,2],[7.7,2.8,6.7,2.0,2],[6.3,2.7,4.9,1.8,2],[6.7,3.3,5.7,2.1,2],
+      [7.2,3.2,6.0,1.8,2],[6.2,2.8,4.8,1.8,2],[6.1,3.0,4.9,1.8,2],[6.4,2.8,5.6,2.1,2],[7.2,3.0,5.8,1.6,2],
+      [7.4,2.8,6.1,1.9,2],[7.9,3.8,6.4,2.0,2],[6.4,2.8,5.6,2.2,2],[6.3,2.8,5.1,1.5,2],[6.1,2.6,5.6,1.4,2],
+      [7.7,3.0,6.1,2.3,2],[6.3,3.4,5.6,2.4,2],[6.4,3.1,5.5,1.8,2],[6.0,3.0,4.8,1.8,2],[6.9,3.1,5.4,2.1,2],
+      [6.7,3.1,5.6,2.4,2],[6.9,3.1,5.1,2.3,2],[5.8,2.7,5.1,1.9,2],[6.8,3.2,5.9,2.3,2],[6.7,3.3,5.7,2.5,2],
+      [6.7,3.0,5.2,2.3,2],[6.3,2.5,5.0,1.9,2],[6.5,3.0,5.2,2.0,2],[6.2,3.4,5.4,2.3,2],[5.9,3.0,5.1,1.8,2]
+    ];
+
+    const targetMap = { 0: 'setosa', 1: 'versicolor', 2: 'virginica' };
+    const featureKeys = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'];
+    
+    // Convert to rich array of objects
+    const df = irisRawData.map((row, idx) => ({
+      idx: idx + 1,
+      sepal_length: row[0],
+      sepal_width: row[1],
+      petal_length: row[2],
+      petal_width: row[3],
+      target: row[4],
+      species: targetMap[row[4]]
+    }));
+
+    // ----------------- 2. DOM ELEMENT SELECTORS -----------------
+    const inputs = {
+      sepalLen: document.getElementById('input-sepal-len'),
+      sepalWid: document.getElementById('input-sepal-wid'),
+      petalLen: document.getElementById('input-petal-len'),
+      petalWid: document.getElementById('input-petal-wid')
+    };
+
+    const vals = {
+      sepalLen: document.getElementById('val-sepal-len'),
+      sepalWid: document.getElementById('val-sepal-wid'),
+      petalLen: document.getElementById('val-petal-len'),
+      petalWid: document.getElementById('val-petal-wid')
+    };
+
+    let scatterChart = null;
+
+    // ----------------- 3. TAB CONTROLLER -----------------
+    function switchTab(tabId) {
+      // Hide all contents
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+      
+      // Deactivate all tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-emerald-700', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+
+      // Show targeted content
+      document.getElementById(`content-${tabId}`).classList.remove('hidden');
+      document.getElementById(`content-${tabId}`).classList.add('block');
+
+      // Highlight active tab button
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      activeBtn.classList.remove('text-slate-600');
+      activeBtn.classList.add('bg-white', 'text-emerald-700', 'shadow-sm');
+
+      // Special Trigger on Tab activation
+      if (tabId === 'analytics') {
+        setTimeout(() => {
+          calculateAndRenderHeatmap('all');
+          initScatterPlot();
+        }, 50);
+      } else if (tabId === 'explorer') {
+        renderExplorerTable();
+      }
+    }
+
+    // ----------------- 4. DECISION TREE PREDICTOR LOGIC -----------------
+    function runPrediction() {
+      const sLen = parseFloat(inputs.sepalLen.value);
+      const sWid = parseFloat(inputs.sepalWid.value);
+      const pLen = parseFloat(inputs.petalLen.value);
+      const pWid = parseFloat(inputs.petalWid.value);
+
+      // Update text indicators
+      vals.sepalLen.innerText = `${sLen.toFixed(1)} cm`;
+      vals.sepalWid.innerText = `${sWid.toFixed(1)} cm`;
+      vals.petalLen.innerText = `${pLen.toFixed(1)} cm`;
+      vals.petalWid.innerText = `${pWid.toFixed(1)} cm`;
+
+      // Keep visual tree dynamic markers updated
+      document.getElementById('tree-petal-len-val').innerText = pLen.toFixed(1);
+      document.getElementById('tree-petal-wid-val').innerText = pWid.toFixed(1);
+
+      // Node Decision Flow (Evaluation of Tree Branch)
+      let activeNodes = ['node-root'];
+      let activeLines = [];
+      let predictedSpecies = '';
+
+      if (pLen <= 2.45) {
+        // Yes to Node 1
+        activeNodes.push('node-setosa');
+        activeLines.push('line-left-1');
+        predictedSpecies = 'setosa';
+      } else {
+        // No to Node 1
+        activeNodes.push('node-mid');
+        activeLines.push('line-right-1');
+
+        if (pWid <= 1.75) {
+          // Yes to Node 3
+          activeNodes.push('node-versicolor');
+          activeLines.push('line-left-2');
+          predictedSpecies = 'versicolor';
+        } else {
+          // No to Node 3
+          activeNodes.push('node-virginica');
+          activeLines.push('line-right-2');
+          predictedSpecies = 'virginica';
+        }
+      }
+
+      // Update UI Classes of Tree Elements
+      document.querySelectorAll('.node-box').forEach(el => {
+        el.className = "node-box w-full max-w-sm bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300 shadow-xs";
+      });
+
+      // Special styling wrapper for standard split size elements
+      document.getElementById('node-root').className = "node-box w-72 bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300 shadow-xs";
+      document.getElementById('node-setosa').className = "node-box w-1/2 bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300 shadow-xs";
+      document.getElementById('node-mid').className = "node-box w-1/2 bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300 flex flex-col justify-center shadow-xs";
+      document.getElementById('node-versicolor').className = "node-box w-[48%] bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300 shadow-xs";
+      document.getElementById('node-virginica').className = "node-box w-[48%] bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center transition-all duration-300 shadow-xs";
+
+      // Apply highlighting colors to nodes
+      activeNodes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove('bg-slate-50', 'border-slate-200');
+          el.classList.add('bg-emerald-500/10', 'border-emerald-500', 'ring-2', 'ring-emerald-500/20');
+        }
+      });
+
+      // Reset SVG Lines path colors
+      ['line-left-1', 'line-right-1', 'line-left-2', 'line-right-2'].forEach(lineId => {
+        const el = document.getElementById(lineId);
+        if (el) el.setAttribute('stroke', '#e2e8f0');
+      });
+
+      // Light up active decision paths
+      activeLines.forEach(lineId => {
+        const el = document.getElementById(lineId);
+        if (el) el.setAttribute('stroke', '#10b981'); // Emerald green line
+      });
+
+      // Update Banner Outcome Card
+      updatePredictionBanner(predictedSpecies);
+
+      // Sync active inputs visually if the scatter plot is currently rendered
+      if (scatterChart) {
+        updateScatterPlotCrosshair();
+      }
+    }
+
+    function updatePredictionBanner(species) {
+      const banner = document.getElementById('result-banner');
+      const avatar = document.getElementById('species-avatar');
+      const title = document.getElementById('species-title');
+      const desc = document.getElementById('species-desc');
+
+      if (species === 'setosa') {
+        banner.className = "rounded-3xl p-6 shadow-md border border-red-200 bg-red-50/50 flex flex-col sm:flex-row items-center gap-6 transition-all duration-300";
+        avatar.innerText = "🌸";
+        avatar.className = "w-20 h-20 rounded-2xl flex items-center justify-center text-4xl bg-white shadow-md border border-red-100";
+        title.innerText = "세토사 (Setosa)";
+        desc.innerText = "꽃잎의 길이와 너비가 대단히 짧아 의사결정나무 스무고개의 첫 단계(꽃잎 길이 2.45cm 이하)에서 아주 신속하고 높은 순도로 분류되는 특징을 가집니다.";
+      } else if (species === 'versicolor') {
+        banner.className = "rounded-3xl p-6 shadow-md border border-emerald-200 bg-emerald-50/50 flex flex-col sm:flex-row items-center gap-6 transition-all duration-300";
+        avatar.innerText = "🌿";
+        avatar.className = "w-20 h-20 rounded-2xl flex items-center justify-center text-4xl bg-white shadow-md border border-emerald-100";
+        title.innerText = "버시컬러 (Versicolor)";
+        desc.innerText = "꽃잎의 길이가 2.45cm보다 넓지만 두께(너비)가 1.75cm를 초과하지 않는 날렵한 크기의 꽃입니다. 보통 연한 보라빛과 그늘에 강한 특성을 띱니다.";
+      } else if (species === 'virginica') {
+        banner.className = "rounded-3xl p-6 shadow-md border border-purple-200 bg-purple-50/50 flex flex-col sm:flex-row items-center gap-6 transition-all duration-300";
+        avatar.innerText = "🍇";
+        avatar.className = "w-20 h-20 rounded-2xl flex items-center justify-center text-4xl bg-white shadow-md border border-purple-100";
+        title.innerText = "버지니카 (Virginica)";
+        desc.innerText = "꽃받침과 꽃잎 모두 전체 붓꽃 종류 중 가장 크게 발달한 대형 종입니다. 꽃잎 길이와 두께가 넓어 주로 의사결정 트리의 가장 아래쪽 'No-No' 분기 끝에 위치합니다.";
+      }
+    }
+
+    function applyPreset(sl, sw, pl, pw) {
+      inputs.sepalLen.value = sl;
+      inputs.sepalWid.value = sw;
+      inputs.petalLen.value = pl;
+      inputs.petalWid.value = pw;
+      runPrediction();
+    }
+
+    // ----------------- 5. MATHEMATICAL CORRELATION ENGINE -----------------
+    // Computes Pearson correlation coefficient between two numeric arrays
+    function pearsonCorrelation(x, y) {
+      const n = x.length;
+      if (n === 0) return 0;
+
+      let sumX = 0, sumY = 0, sumXY = 0;
+      let sumXX = 0, sumYY = 0;
+
+      for (let i = 0; i < n; i++) {
+        sumX += x[i];
+        sumY += y[i];
+        sumXY += x[i] * y[i];
+        sumXX += x[i] * x[i];
+        sumYY += y[i] * y[i];
+      }
+
+      const num = n * sumXY - sumX * sumY;
+      const den = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+
+      if (den === 0) return 0;
+      return num / den;
+    }
+
+    function calculateAndRenderHeatmap(speciesType) {
+      // 1. Filter dataset by selected type
+      let filtered = df;
+      let titleSuffix = "전체 통합 붓꽃";
+      
+      if (speciesType !== 'all') {
+        filtered = df.filter(row => row.species === speciesType);
+        titleSuffix = `${speciesType.charAt(0).toUpperCase() + speciesType.slice(1)} 품종`;
+      }
+
+      document.getElementById('heatmap-title-text').innerText = `${titleSuffix} 특성별 상관관계`;
+
+      // Update Active Navigation Button Styles
+      document.querySelectorAll('.hm-btn').forEach(btn => {
+        btn.className = "hm-btn px-4 py-2.5 text-sm font-semibold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all duration-150";
+      });
+      document.getElementById(`btn-hm-${speciesType}`).className = "hm-btn px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-900 text-white shadow-sm transition-all duration-150";
+
+      // Variables dictionary mapping for computation
+      const variables = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'];
+      const variableKorean = {
+        'sepal_length': '꽃받침 길이',
+        'sepal_width': '꽃받침 너비',
+        'petal_length': '꽃잎 길이',
+        'petal_width': '꽃잎 너비'
+      };
+
+      const matrix = {};
+      variables.forEach(v1 => {
+        matrix[v1] = {};
+        variables.forEach(v2 => {
+          const arrX = filtered.map(item => item[v1]);
+          const arrY = filtered.map(item => item[v2]);
+          matrix[v1][v2] = pearsonCorrelation(arrX, arrY);
+        });
+      });
+
+      // Render the correlation matrix directly via JS grid elements
+      const gridContainer = document.getElementById('heatmap-grid');
+      gridContainer.innerHTML = '';
+
+      variables.forEach(v1 => {
+        // Create heatmap row container
+        const rowDiv = document.createElement('div');
+        rowDiv.className = "grid grid-cols-5 gap-1 items-center text-center";
+
+        // Row label (Y-axis title)
+        const rowLabel = document.createElement('div');
+        rowLabel.className = "text-left text-xs font-bold text-slate-600 pr-1 truncate";
+        rowLabel.innerText = variableKorean[v1];
+        rowDiv.appendChild(rowLabel);
+
+        // Cells calculation
+        variables.forEach(v2 => {
+          const corrVal = matrix[v1][v2];
+          const cellDiv = document.createElement('div');
+          cellDiv.className = "py-3 text-xs font-black rounded-lg transition-all duration-200 cursor-default relative group shadow-2xs";
+          cellDiv.innerText = corrVal.toFixed(2);
+
+          // Generate dynamic colors based on correlation strength
+          // Strong positive: Emerald Green, Strong negative: Rose Pink, Neutral: light slate
+          let bgClass = "";
+          let textClass = "";
+
+          if (corrVal >= 0.7) {
+            bgClass = "bg-emerald-500 text-white";
+          } else if (corrVal >= 0.4) {
+            bgClass = "bg-emerald-300 text-emerald-950";
+          } else if (corrVal >= 0.1) {
+            bgClass = "bg-emerald-100 text-emerald-900";
+          } else if (corrVal > -0.1) {
+            bgClass = "bg-slate-100 text-slate-700";
+          } else if (corrVal > -0.4) {
+            bgClass = "bg-rose-50 text-rose-900";
+          } else if (corrVal > -0.7) {
+            bgClass = "bg-rose-200 text-rose-950";
+          } else {
+            bgClass = "bg-rose-500 text-white";
+          }
+
+          cellDiv.className += ` ${bgClass}`;
+
+          // Tooltip for hover state details
+          const tooltip = document.createElement('span');
+          tooltip.className = "absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-[10px] text-white rounded-md whitespace-nowrap z-50 shadow-md";
+          tooltip.innerText = `${variableKorean[v1]} & ${variableKorean[v2]} ($r = ${corrVal.toFixed(4)}$)`;
+          cellDiv.appendChild(tooltip);
+
+          // Add cell to row
+          rowDiv.appendChild(cellDiv);
+        });
+
+        // Add row to grid container
+        gridContainer.appendChild(rowDiv);
+      });
+    }
+
+    // ----------------- 6. CHART.JS INTERACTIVE PLOT -----------------
+    function initScatterPlot() {
+      const ctx = document.getElementById('scatterChart').getContext('2d');
+      if (scatterChart) {
+        scatterChart.destroy();
+      }
+
+      // Segment actual points data
+      const dataSetosa = df.filter(r => r.species === 'setosa');
+      const dataVersicolor = df.filter(r => r.species === 'versicolor');
+      const dataVirginica = df.filter(r => r.species === 'virginica');
+
+      const xIdx = parseInt(document.getElementById('axis-x-select').value);
+      const yIdx = parseInt(document.getElementById('axis-y-select').value);
+
+      const mapDataToXY = (rows) => rows.map(r => {
+        const vals = [r.sepal_length, r.sepal_width, r.petal_length, r.petal_width];
+        return { x: vals[xIdx], y: vals[yIdx] };
+      });
+
+      const xLabel = document.getElementById('axis-x-select').options[xIdx].text.replace("X축: ", "");
+      const yLabel = document.getElementById('axis-y-select').options[yIdx].text.replace("Y축: ", "");
+
+      // Current predictions coordinates crosshair coordinates
+      const currentValues = [
+        parseFloat(inputs.sepalLen.value),
+        parseFloat(inputs.sepalWid.value),
+        parseFloat(inputs.petalLen.value),
+        parseFloat(inputs.petalWid.value)
+      ];
+
+      scatterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: [
+            {
+              label: '세토사 (Setosa)',
+              data: mapDataToXY(dataSetosa),
+              backgroundColor: 'rgba(239, 68, 68, 0.75)', // Red-500
+              borderColor: 'rgba(239, 68, 68, 1)',
+              borderWidth: 1,
+              pointRadius: 5.5,
+              hoverRadius: 8
+            },
+            {
+              label: '버시컬러 (Versicolor)',
+              data: mapDataToXY(dataVersicolor),
+              backgroundColor: 'rgba(16, 185, 129, 0.75)', // Emerald-500
+              borderColor: 'rgba(16, 185, 129, 1)',
+              borderWidth: 1,
+              pointRadius: 5.5,
+              hoverRadius: 8
+            },
+            {
+              label: '버지니카 (Virginica)',
+              data: mapDataToXY(dataVirginica),
+              backgroundColor: 'rgba(139, 92, 246, 0.75)', // Violet-500
+              borderColor: 'rgba(139, 92, 246, 1)',
+              borderWidth: 1,
+              pointRadius: 5.5,
+              hoverRadius: 8
+            },
+            {
+              label: '내 실시간 입력값 (+)',
+              data: [{ x: currentValues[xIdx], y: currentValues[yIdx] }],
+              backgroundColor: '#0f172a', // Slate-900
+              borderColor: '#0f172a',
+              pointStyle: 'crossRot', // Cross shape marker
+              pointRadius: 16,
+              pointHoverRadius: 16,
+              borderWidth: 4,
+              showLine: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                font: { size: 11, weight: 'bold', family: 'Noto Sans KR' },
+                padding: 15
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: `${xLabel} (cm)`,
+                font: { size: 12, weight: 'extrabold', family: 'Noto Sans KR' }
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: `${yLabel} (cm)`,
+                font: { size: 12, weight: 'extrabold', family: 'Noto Sans KR' }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateScatterPlot() {
+      initScatterPlot();
+    }
+
+    // Sync input crosshair instantly without rebuilding full dataset points
+    function updateScatterPlotCrosshair() {
+      if (!scatterChart) return;
+      const xIdx = parseInt(document.getElementById('axis-x-select').value);
+      const yIdx = parseInt(document.getElementById('axis-y-select').value);
+
+      const currentValues = [
+        parseFloat(inputs.sepalLen.value),
+        parseFloat(inputs.sepalWid.value),
+        parseFloat(inputs.petalLen.value),
+        parseFloat(inputs.petalWid.value)
+      ];
+
+      // Update 4th dataset (Index 3, representing user marker)
+      scatterChart.data.datasets[3].data = [{
+        x: currentValues[xIdx],
+        y: currentValues[yIdx]
+      }];
+      scatterChart.update('none'); // Update without full recalculation transition
+    }
+
+    // ----------------- 7. DATASET SEARCH & TABLE -----------------
+    function renderExplorerTable() {
+      const tbody = document.getElementById('table-tbody');
+      tbody.innerHTML = '';
+
+      const query = document.getElementById('table-search').value.toLowerCase();
+      const filterVal = document.getElementById('table-filter').value;
+
+      let filtered = df.filter(row => {
+        // Dropdown filter
+        if (filterVal !== 'all' && row.species !== filterVal) return false;
+        // Text Search Filter
+        if (query && !row.species.includes(query)) return false;
+        return true;
+      });
+
+      // Render only first 30 rows of filtered to avoid heavy DOM lag, with a load indicator
+      const renderLimit = filtered.slice(0, 50);
+
+      renderLimit.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors duration-100";
+
+        let badgeClass = "";
+        if (row.species === 'setosa') badgeClass = "bg-red-50 text-red-700 border-red-100";
+        else if (row.species === 'versicolor') badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
+        else badgeClass = "bg-purple-50 text-purple-700 border-purple-100";
+
+        tr.innerHTML = `
+          <td class="px-6 py-3.5 text-slate-400 font-normal">No.${row.idx}</td>
+          <td class="px-6 py-3.5 font-bold">${row.sepal_length.toFixed(1)}</td>
+          <td class="px-6 py-3.5 font-bold">${row.sepal_width.toFixed(1)}</td>
+          <td class="px-6 py-3.5 font-bold">${row.petal_length.toFixed(1)}</td>
+          <td class="px-6 py-3.5 font-bold">${row.petal_width.toFixed(1)}</td>
+          <td class="px-6 py-3.5">
+            <span class="px-2.5 py-1 text-xs font-bold border rounded-lg ${badgeClass}">
+              ${row.species}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Update table total stats indicator
+      document.getElementById('table-stats').innerText = `출력 항목: 총 150행 중 ${filtered.length}행 (상위 50개 출력)`;
+    }
+
+    function filterExplorerTable() {
+      renderExplorerTable();
+    }
+
+    // ----------------- 8. MAIN INITIALIZATION -----------------
+    window.onload = function() {
+      // 1. Setup real-time listeners for predict sliders
+      Object.values(inputs).forEach(inputEl => {
+        inputEl.addEventListener('input', runPrediction);
+      });
+
+      // 2. Perform initial default evaluation
+      runPrediction();
+    }
+  </script>
+</body>
+</html>
