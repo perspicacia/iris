@@ -63,13 +63,11 @@
 ## Model
 
 이 프로젝트에서는 붓꽃의 형태 정보를 바탕으로  
-품종을 예측하는 분류 모델을 적용했습니다.
+품종을 예측하는 **Decision Tree 분류 모델**을 적용했습니다.
 
 모델은 사용자가 입력한 feature 값을 기반으로  
-세 가지 품종 중 하나를 예측하도록 구성했습니다.
+Setosa, Versicolor, Virginica 중 하나를 예측하도록 구성했습니다.
 
-> 실제 사용한 모델명이 기억나면 이 부분만 바꿔 주세요.  
-> 예: Decision Tree / Random Forest / KNN / Logistic Regression
 
 ## App Features
 
