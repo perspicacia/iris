@@ -6,7 +6,7 @@
 
 ## Live Demo
 - Demo: [Iris App](https://perspicacia.github.io/iris/)
-- Repository: [GitHub Repository](https://github.com/perspicacia/titanic)
+- Repository: [GitHub Repository](https://github.com/perspicacia/iris)
 
 ## Project Overview
 
@@ -37,12 +37,17 @@
 
 ## Tech Stack
 
-- Python
-- Pandas
-- NumPy
-- Matplotlib / Seaborn
-- Scikit-learn
+**Web App (이 저장소)**
 - HTML / CSS / JavaScript
+- Tailwind CSS
+- Chart.js
+
+**Data Analysis (분석 단계)**
+- Python, Pandas, NumPy
+- Matplotlib / Seaborn
+- Scikit-learn (Decision Tree)
+
+> 분석 노트북은 정리 후 `notebooks/` 폴더에 추가할 예정입니다.
 
 ## Analysis Process
 
@@ -88,9 +93,7 @@ Setosa, Versicolor, Virginica 중 하나를 예측하도록 구성했습니다.
 ## Folder Structure
 
 ```bash
-.
-├── data
-├── notebooks
-├── src
-├── app
-└── README.md
+iris/
+├── README.md
+└── index.html    # 실시간 품종 예측, 상관관계 히트맵, 산점도, 데이터 테이블 웹 앱
+```
